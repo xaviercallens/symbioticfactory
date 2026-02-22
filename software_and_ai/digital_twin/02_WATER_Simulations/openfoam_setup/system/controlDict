@@ -1,0 +1,100 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| ==========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Symbiotic Factory — WATER Module Cycloreactor CFD
+// =================================================
+// Solver: multiphaseEulerFoam (gas-liquid CO2 nano-bubble simulation)
+// Geometry: Vertical tube with helical stator from helical_stator.scad
+//
+// This case simulates:
+//   1. Tangential water inlet creating cyclonic vortex
+//   2. CO2 nano-bubble generation via Venturi pressure drop
+//   3. Gas-liquid mass transfer coefficient (kLa) calculation
+//   4. Wall shear stress (must be < 1 Pa to preserve algal cell integrity)
+//   5. Vortex frequency validation (target: 10-50 Hz flashing-light)
+
+application     multiphaseEulerFoam;
+
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         2.0;          // 2 seconds of physical time
+
+deltaT          1e-5;         // Microsecond timestep (required for nano-bubble resolution)
+writeControl    adjustableRunTime;
+writeInterval   0.1;
+
+purgeWrite      0;
+writeFormat     ascii;
+writePrecision  8;
+writeCompression off;
+
+timeFormat      general;
+timePrecision   6;
+
+runTimeModifiable yes;
+adjustTimeStep  yes;
+maxCo           0.5;
+maxAlphaCo      0.3;
+
+functions
+{
+    // Monitor volumetric mass transfer coefficient
+    kLa_monitor
+    {
+        type            fieldAverage;
+        functionObjectType fieldAverage;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+        fields
+        (
+            alpha.gas
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+        );
+    }
+
+    // Monitor wall shear stress on reactor walls
+    wallShearStress
+    {
+        type            wallShearStress;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+        patches         (reactorWall);
+    }
+
+    // Probe points along the reactor height for vortex frequency analysis
+    vortexProbes
+    {
+        type            probes;
+        libs            (sampling);
+        writeControl    timeStep;
+        writeInterval   10;
+        probeLocations
+        (
+            (0.03 0 0.5)    // Near wall, mid-height
+            (0.03 0 1.0)
+            (0.03 0 1.5)
+            (0.0  0 1.0)    // Center axis
+        );
+        fields          (U p alpha.gas);
+    }
+}
+
+// ************************************************************************* //

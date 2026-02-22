@@ -1,0 +1,63 @@
+name: Digital Twin CI — EROI Gate
+
+on:
+  pull_request:
+    paths:
+      - '01_SUN_Desalination/hardware/**'
+      - '02_WATER_Cycloreactor/hardware/**'
+      - '03_TERRE_Biochar/hardware/**'
+      - '04_FIRE_Biorefinery/hardware/**'
+      - 'software_and_ai/digital_twin/**'
+
+jobs:
+  digital-twin-validation:
+    runs-on: ubuntu-latest
+    name: "🏭 Digital Twin — Thermodynamic Validation"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install numpy scipy matplotlib pandas
+
+      - name: Run HTL Thermodynamics (Cantera)
+        run: |
+          cd software_and_ai/digital_twin
+          python 04_FIRE_Simulations/htl_subcritical.py
+
+      - name: Run Pyrolysis Kinetics (TERRE)
+        run: |
+          cd software_and_ai/digital_twin
+          python 03_TERRE_Simulations/pyrolysis_kinetics.py
+
+      - name: Run Clostridium Metabolic FBA
+        run: |
+          cd software_and_ai/digital_twin
+          python 05_WETWARE_Simulations/clostridium_flux.py
+
+      - name: Run Chlorella Photosynthetic FBA
+        run: |
+          cd software_and_ai/digital_twin
+          python 05_WETWARE_Simulations/chlorella_flux.py
+
+      - name: Run IDAES Mass & Energy Balance
+        run: |
+          cd software_and_ai/digital_twin
+          python 00_Orchestrator/idaes_master_flowsheet.py
+
+      - name: Upload simulation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: digital-twin-reports
+          path: |
+            software_and_ai/digital_twin/*.png
+          retention-days: 30
