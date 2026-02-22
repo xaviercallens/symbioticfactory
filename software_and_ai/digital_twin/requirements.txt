@@ -1,0 +1,26 @@
+# Digital Twin Dependencies
+# ========================
+# Install with: pip install -r requirements.txt
+
+# --- Phase 1: Plant-Wide Optimization ---
+openmdao>=3.27.0          # NASA Glenn - Multidisciplinary Design Optimization
+idaes-pse>=2.2.0          # US DOE - Process Systems Engineering
+pyomo>=6.7.0              # Algebraic modeling (required by IDAES)
+
+# --- Phase 3: Chemical Kinetics ---
+cantera>=3.0.0            # Caltech/JPL - Chemical kinetics & thermodynamics
+
+# --- Phase 5: Biological Modeling ---
+cobra>=0.29.0             # COBRApy - Genome-Scale Metabolic Modeling
+
+# --- Phase 5: Photonic Simulation ---
+meep>=1.28.0              # MIT - FDTD Electromagnetic Simulation
+h5py>=3.10.0              # HDF5 interface for MEEP outputs
+
+# --- Utilities ---
+numpy>=1.26.0
+scipy>=1.12.0
+matplotlib>=3.8.0
+pandas>=2.1.0
+pyyaml>=6.0
+jinja2>=3.1.0             # For generating SIMULATION_REPORT.md
