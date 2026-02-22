@@ -35,13 +35,25 @@ Whether you are building a 50-liter prototype in a garage or designing a $500,00
 
 ---
 
-## 🔄 The Symbiotic Execution Loop (Quickstart)
-To boot up the factory at a local node, execute this sequence:
-1. **Initialize TERRE:** Pyrolyze local organic waste to create your first PAC biochar.
-2. **Initialize SUN:** Synthesize the biochar into an ISSG sponge. Produce your first $10\text{L}$ of distilled water.
-3. **Inoculate WATER:** Fill the Cycloreactor with the distilled water + nutrients. Inoculate algae. Activate the nano-bubbler and LED sequence. Wait 7 days.
-4. **Ignite FIRE:** Harvest wet algal paste. Process via HTL to extract bio-crude. Feed leftover $CO_2$ through the $Ag/WO_3$ photocatalyst into the *Clostridium* bioreactor.
-5. **Close the Loop:** Route solid hydrochar waste back to **TERRE**. Route N/P-rich aqueous wastewater back to **WATER**. The cycle is now autonomous.
+### 🚀 Quickstart Guide
+
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/xaviercallens/symbioticfactory.git
+    cd symbioticfactory
+    ```
+
+2.  **Review Safety Protocols ($<span style="color:red">CRITICAL</span>$)**
+    Before touching any hardware or wetware, you MUST read and understand `SAFETY.md`. This architecture deals with high pressure, caustic chemicals, and toxic gasses.
+
+3.  **Boot the Cybernetic Nervous System**
+    Navigate to `software_and_ai/` to flash the ESP32 firmware and launch the Python edge-modeling scripts.
+
+4.  **Hardware & Wetware Assembly**
+    Navigate to the specific module directory (e.g., `01_SUN_Desalination/`) and open its individual `README.md` to find the OpenSCAD files, build guides, and chemical synthesis protocols for that specific subsystem.
+
+5.  **Test & Scale the Factory**
+    Once individual modules are built, read the [Scaling & Testing Guide](SCALING_AND_TESTING_GUIDE.md) to learn how to integrate them into a continuous WEFC closed-loop system, execute the 4-phase commissioning protocol, and scale the technology from a backyard prototype to a megawatt-class industrial facility.
 
 ---
 
