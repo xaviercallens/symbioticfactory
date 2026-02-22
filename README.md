@@ -53,7 +53,24 @@ Whether you are building a 50-liter prototype in a garage or designing a $500,00
 
 ## 🖥️ Digital Twin: In-Silico Validation Results
 
-Before bending any steel, we validated the core scientific assumptions using a **multi-physics Digital Twin** built on open-source engines from NASA, DOE, Caltech, MIT, and NIH. See the [full simulation report →](software_and_ai/digital_twin/SIMULATION_REPORT.md)
+Before bending any steel, we validated the core scientific assumptions using a **multi-physics Digital Twin** built on open-source engines from NASA, DOE, Caltech, MIT, and NIH. See the [full simulation report →](software_and_ai/digital_twin/SIMULATION_REPORT.md) | [Interactive Dashboard →](software_and_ai/digital_twin/dashboard.html)
+
+### 📊 Digital Twin Dashboard
+
+<p align="center">
+  <em>System EROI & Energy Balance — NASA OpenMDAO + DOE IDAES</em><br>
+  <img src="docs/dashboard_eroi_overview.png" alt="Digital Twin Dashboard — EROI Overview and Symbiotic Mass Flow" width="800"/>
+</p>
+
+<p align="center">
+  <em>Closed-Loop Mass Flow & Per-Module Engineering Metrics</em><br>
+  <img src="docs/dashboard_mass_flow.png" alt="Digital Twin Dashboard — Mass Flow Sankey and Module Metrics" width="800"/>
+</p>
+
+<p align="center">
+  <em>Module Deep-Dive, Clostridium Metabolic Switch & Validation Status</em><br>
+  <img src="docs/dashboard_modules_validation.png" alt="Digital Twin Dashboard — Module Metrics, Metabolic Switch, Nutrient Recycling" width="800"/>
+</p>
 
 ### HTL Subcritical Thermodynamics (Cantera)
 The dielectric constant of water drops from $\varepsilon_r \approx 80$ to $\varepsilon_r \approx 20$ at $300^\circ\text{C}$, confirmed by the Uematsu & Franck correlation. At this point, water transitions from a polar ionic solvent to a non-polar organic solvent — the thermodynamic basis for wet biomass depolymerization.
