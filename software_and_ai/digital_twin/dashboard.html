@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbiotic Factory — Digital Twin Dashboard</title>
+    <meta name="description" content="Real-time visualization of the Symbiotic Factory WEFC Biorefinery Digital Twin simulation results">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-card: #111827;
+            --bg-card-hover: #1a2332;
+            --border: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --sun-gold: #f59e0b;
+            --sun-glow: rgba(245,158,11,0.15);
+            --water-blue: #06b6d4;
+            --water-glow: rgba(6,182,212,0.15);
+            --terre-green: #10b981;
+            --terre-glow: rgba(16,185,129,0.15);
+            --fire-red: #ef4444;
+            --fire-glow: rgba(239,68,68,0.15);
+            --accent-purple: #8b5cf6;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === HEADER === */
+        .header {
+            background: var(--gradient-hero);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(139,92,246,0.08) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 30%, rgba(6,182,212,0.06) 0%, transparent 50%);
+            animation: headerPulse 8s ease-in-out infinite;
+        }
+        @keyframes headerPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        .header-content { position: relative; z-index: 1; }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #f1f5f9, #8b5cf6, #06b6d4);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.3rem;
+        }
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+        .header-badges {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .badge-eroi {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5;
+        }
+        .badge-eroi.pass {
+            background: rgba(34,197,94,0.15);
+            border-color: rgba(34,197,94,0.3);
+            color: #86efac;
+        }
+        .badge-twin {
+            background: rgba(139,92,246,0.15);
+            border: 1px solid rgba(139,92,246,0.3);
+            color: #c4b5fd;
+        }
+        .badge-sim {
+            background: rgba(6,182,212,0.15);
+            border: 1px solid rgba(6,182,212,0.3);
+            color: #67e8f9;
+        }
+
+        /* === MAIN GRID === */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 1.25rem;
+            padding: 1.5rem 3rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* === CARDS === */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(139,92,246,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .card-icon.sun { background: var(--sun-glow); }
+        .card-icon.water { background: var(--water-glow); }
+        .card-icon.terre { background: var(--terre-glow); }
+        .card-icon.fire { background: var(--fire-glow); }
+        .card-icon.system { background: rgba(139,92,246,0.15); }
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .card-subtitle {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* === METRICS === */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .metric {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 0.85rem;
+        }
+        .metric-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.3rem;
+        }
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .metric-unit {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        .metric-value.sun { color: var(--sun-gold); }
+        .metric-value.water { color: var(--water-blue); }
+        .metric-value.terre { color: var(--terre-green); }
+        .metric-value.fire { color: var(--fire-red); }
+        .metric-value.system { color: var(--accent-purple); }
+        .metric-value.success { color: var(--success); }
+        .metric-value.warning { color: var(--warning); }
+        .metric-value.danger { color: var(--danger); }
+
+        /* === STATUS INDICATORS === */
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .status-row:last-child { border-bottom: none; }
+        .status-label { font-size: 0.78rem; color: var(--text-secondary); }
+        .status-tag {
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+        }
+        .status-tag.pass {
+            background: rgba(34,197,94,0.15);
+            color: #86efac;
+            border: 1px solid rgba(34,197,94,0.2);
+        }
+        .status-tag.fail {
+            background: rgba(239,68,68,0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+        .status-tag.warn {
+            background: rgba(245,158,11,0.15);
+            color: #fde68a;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+
+        /* === FLOW DIAGRAM === */
+        .flow-card { grid-column: 1 / -1; }
+        .sankey-container {
+            position: relative;
+            height: 220px;
+            margin-top: 1rem;
+        }
+        .sankey-node {
+            position: absolute;
+            width: 110px;
+            padding: 0.6rem;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+        .sankey-node.sun { background: var(--sun-glow); border: 1px solid rgba(245,158,11,0.3); top: 80px; left: 2%; }
+        .sankey-node.water { background: var(--water-glow); border: 1px solid rgba(6,182,212,0.3); top: 20px; left: 27%; }
+        .sankey-node.fire { background: var(--fire-glow); border: 1px solid rgba(239,68,68,0.3); top: 80px; left: 52%; }
+        .sankey-node.terre { background: var(--terre-glow); border: 1px solid rgba(16,185,129,0.3); top: 140px; left: 77%; }
+        .sankey-node .node-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 0.3rem;
+        }
+        .flow-arrow {
+            position: absolute;
+            z-index: 1;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .flow-arrow .arrow-line {
+            height: 2px;
+            background: linear-gradient(90deg, var(--text-muted), rgba(139,92,246,0.5));
+            margin-bottom: 0.2rem;
+            border-radius: 2px;
+            animation: flowPulse 2s ease-in-out infinite;
+        }
+        @keyframes flowPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* === BAR CHART === */
+        .bar-chart { margin-top: 0.75rem; }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .bar-label {
+            width: 80px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .bar-track {
+            flex: 1;
+            height: 20px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1.5s ease;
+            position: relative;
+        }
+        .bar-fill.sun { background: linear-gradient(90deg, var(--sun-gold), #fbbf24); }
+        .bar-fill.water { background: linear-gradient(90deg, var(--water-blue), #22d3ee); }
+        .bar-fill.terre { background: linear-gradient(90deg, var(--terre-green), #34d399); }
+        .bar-fill.fire { background: linear-gradient(90deg, var(--fire-red), #f87171); }
+        .bar-pct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            width: 45px;
+            text-align: left;
+            flex-shrink: 0;
+        }
+
+        /* === WIDE CARD === */
+        .card-wide { grid-column: span 2; }
+        @media (max-width: 900px) {
+            .card-wide { grid-column: span 1; }
+            .dashboard { padding: 1rem; }
+            .header { padding: 1.5rem 1rem; }
+        }
+
+        /* === FOOTER === */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+        .footer a { color: var(--accent-purple); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <h1>🏭 Symbiotic Factory — Digital Twin Dashboard</h1>
+            <p>In-silico validation of the Water-Energy-Food-Carbon (WEFC) Biorefinery</p>
+            <div class="header-badges">
+                <span class="badge badge-eroi" id="eroi-badge">⚡ EROI: 2.04 — GATE FAIL</span>
+                <span class="badge badge-twin">🖥️ Twin v1.0 — 7 Physics Engines</span>
+                <span class="badge badge-sim">✅ 7/7 Simulations Passed</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard">
+
+        <!-- EROI OVERVIEW -->
+        <div class="card card-wide">
+            <div class="card-header">
+                <div class="card-icon system">⚡</div>
+                <div>
+                    <div class="card-title">System EROI — Energy Return on Investment</div>
+                    <div class="card-subtitle">NASA OpenMDAO + DOE IDAES Master Flowsheet</div>
+                </div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-label">Current EROI</div>
+                    <div class="metric-value danger" id="eroi-value">2.04</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Target EROI</div>
+                    <div class="metric-value success">≥ 3.50</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Projected (Optimized HX)</div>
+                    <div class="metric-value success">8.50+</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Bottleneck</div>
+                    <div class="metric-value warning" style="font-size:0.85rem;">Heat Exchanger<br><span class="metric-unit">39% recovery (need 85%)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MASS FLOW SANKEY -->
+        <div class="card flow-card">
+            <div class="card-header">
+                <div class="card-icon system">🔄</div>
+                <div>
+                    <div class="card-title">Symbiotic Mass Flow</div>
+                    <div class="card-subtitle">Closed-loop WEFC material routing (kg/hr)</div>
+                </div>
+            </div>
+            <div class="sankey-container">
+                <div class="sankey-node sun">☀️ SUN<span class="node-value">4.24 kg/hr</span><span class="metric-unit">Freshwater</span></div>
+                <div class="sankey-node water">💧 WATER<span class="node-value">151.2 kg/hr</span><span class="metric-unit">Wet Biomass</span></div>
+                <div class="sankey-node fire">🔥 FIRE<span class="node-value">7.94 kg/hr</span><span class="metric-unit">Bio-Crude</span></div>
+                <div class="sankey-node terre">🌍 TERRE<span class="node-value">0.77 kg/hr</span><span class="metric-unit">PAC Biochar</span></div>
+                <div class="flow-arrow" style="top: 50px; left: 14%; width: 14%;">
+                    <div class="arrow-line"></div>H₂O →
+                </div>
+                <div class="flow-arrow" style="top: 55px; left: 38%; width: 14%;">
+                    <div class="arrow-line"></div>Biomass →
+                </div>
+                <div class="flow-arrow" style="top: 120px; left: 63%; width: 14%;">
+                    <div class="arrow-line"></div>Hydrochar →
+                </div>
+                <div class="flow-arrow" style="top: 180px; left: 40%; width: 30%; transform: scaleX(-1);">
+                    <div class="arrow-line" style="background: linear-gradient(90deg, rgba(16,185,129,0.5), var(--text-muted));"></div>
+                </div>
+                <div style="position:absolute; bottom:5px; left:42%; font-size:0.6rem; color: var(--terre-green);">← 10% PAC → SUN evaporators</div>
+                <div class="flow-arrow" style="top: 5px; left: 52%; width: 12%;">
+                    <div class="arrow-line" style="background: linear-gradient(90deg, rgba(239,68,68,0.5), rgba(6,182,212,0.5));"></div>
+                    <span style="color:var(--water-blue);">← N/P recycle</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUN MODULE -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon sun">☀️</div>
+                <div>
+                    <div class="card-title" style="color:var(--sun-gold);">Module I — SUN</div>
+                    <div class="card-subtitle">Plasmonic ISSG Desalination</div>
+                </div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-label">Freshwater Rate</div>
+                    <div class="metric-value sun">4.24 <span class="metric-unit">kg/hr</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">LSPR Efficiency</div>
+                    <div class="metric-value sun">92% <span class="metric-unit">η</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">ΔH_vap (Nanoconfined)</div>
+                    <div class="metric-value sun">1,250 <span class="metric-unit">kJ/kg</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Optimal Pore Radius</div>
+                    <div class="metric-value sun">2.3 <span class="metric-unit">μm</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WATER MODULE -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon water">💧</div>
+                <div>
+                    <div class="card-title" style="color:var(--water-blue);">Module II — WATER</div>
+                    <div class="card-subtitle">Nano-Bubbling Algal Cycloreactor</div>
+                </div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-label">Biomass Productivity</div>
+                    <div class="metric-value water">41.8 <span class="metric-unit">g/L/day</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">CO₂ Absorbed</div>
+                    <div class="metric-value water">7.64 <span class="metric-unit">kg/day</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">LED Frequency</div>
+                    <div class="metric-value water">25 <span class="metric-unit">Hz (91% max)</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Flash Enhancement</div>
+                    <div class="metric-value water">2.73× <span class="metric-unit">QY boost</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TERRE MODULE -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon terre">🌍</div>
+                <div>
+                    <div class="card-title" style="color:var(--terre-green);">Module III — TERRE</div>
+                    <div class="card-subtitle">PAC Biochar Synthesis</div>
+                </div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-label">Min Temp for O:C &lt; 0.2</div>
+                    <div class="metric-value terre">554 <span class="metric-unit">°C</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">O:C at 600°C</div>
+                    <div class="metric-value success">0.166 <span class="metric-unit">✅ &lt;0.2</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Syngas Surplus</div>
+                    <div class="metric-value terre">7.4× <span class="metric-unit">self-sustaining</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Carbon Sink</div>
+                    <div class="metric-value terre">0.77 <span class="metric-unit">kg/hr</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FIRE MODULE -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon fire">🔥</div>
+                <div>
+                    <div class="card-title" style="color:var(--fire-red);">Module IV — FIRE</div>
+                    <div class="card-subtitle">HTL Biorefinery & Z-Scheme Fermentation</div>
+                </div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-label">Bio-Crude HHV</div>
+                    <div class="metric-value fire">34.0 <span class="metric-unit">MJ/kg</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Bio-Crude Rate</div>
+                    <div class="metric-value fire">7.94 <span class="metric-unit">kg/hr</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Ethanol Rate</div>
+                    <div class="metric-value fire">0.44 <span class="metric-unit">kg/hr</span></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">HX Recovery</div>
+                    <div class="metric-value danger">39% <span class="metric-unit">⚠️ need 85%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- METABOLIC SWITCH -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon fire">🧬</div>
+                <div>
+                    <div class="card-title">Clostridium Metabolic Switch</div>
+                    <div class="card-subtitle">COBRApy — Wood-Ljungdahl FBA</div>
+                </div>
+            </div>
+            <div class="bar-chart">
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:0.5rem;">pH 5.8 — Ethanol Mode</div>
+                <div class="bar-row">
+                    <div class="bar-label">Ethanol</div>
+                    <div class="bar-track"><div class="bar-fill fire" style="width:60%;"></div></div>
+                    <div class="bar-pct">60.0%</div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Butanol</div>
+                    <div class="bar-track"><div class="bar-fill fire" style="width:22.9%;"></div></div>
+                    <div class="bar-pct">22.9%</div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Acetate</div>
+                    <div class="bar-track"><div class="bar-fill fire" style="width:17.1%;"></div></div>
+                    <div class="bar-pct">17.1%</div>
+                </div>
+                <div style="font-size:0.7rem; color:var(--text-muted); margin:0.75rem 0 0.5rem;">pH 6.4 — Butanol Mode</div>
+                <div class="bar-row">
+                    <div class="bar-label">Ethanol</div>
+                    <div class="bar-track"><div class="bar-fill water" style="width:29.2%;"></div></div>
+                    <div class="bar-pct">29.2%</div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Butanol</div>
+                    <div class="bar-track"><div class="bar-fill water" style="width:2.6%;"></div></div>
+                    <div class="bar-pct">2.6%</div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Acetate</div>
+                    <div class="bar-track"><div class="bar-fill water" style="width:68.2%;"></div></div>
+                    <div class="bar-pct">68.2%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NUTRIENT RECYCLING -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon system">♻️</div>
+                <div>
+                    <div class="card-title">Nutrient Recycling Closure</div>
+                    <div class="card-subtitle">HTL Aqueous Phase → WATER Module</div>
+                </div>
+            </div>
+            <div class="bar-chart" style="margin-top:1rem;">
+                <div class="bar-row">
+                    <div class="bar-label">Nitrogen</div>
+                    <div class="bar-track"><div class="bar-fill" style="width:24.5%; background:linear-gradient(90deg,var(--warning),#fbbf24);"></div></div>
+                    <div class="bar-pct" style="color:var(--warning);">24.5%</div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Phosphorus</div>
+                    <div class="bar-track"><div class="bar-fill terre" style="width:88.6%;"></div></div>
+                    <div class="bar-pct" style="color:var(--success);">88.6%</div>
+                </div>
+            </div>
+            <div style="margin-top:1rem;">
+                <div class="status-row">
+                    <span class="status-label">N Closure</span>
+                    <span class="status-tag warn">⚠️ Low — Add struvite precipitation</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">P Closure</span>
+                    <span class="status-tag pass">✅ Near-complete</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- VALIDATION STATUS -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon system">🧪</div>
+                <div>
+                    <div class="card-title">Digital Twin Validation Status</div>
+                    <div class="card-subtitle">All 7 simulation engines</div>
+                </div>
+            </div>
+            <div class="status-row">
+                <span class="status-label">🚀 OpenMDAO (NASA) — EROI Optimization</span>
+                <span class="status-tag pass">✅ RUN</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">⚙️ IDAES (DOE) — Mass/Energy Balance</span>
+                <span class="status-tag pass">✅ RUN</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">🪐 Cantera (Caltech) — HTL Kinetics</span>
+                <span class="status-tag pass">✅ RUN</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">🪐 Cantera (Caltech) — Pyrolysis</span>
+                <span class="status-tag pass">✅ RUN</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">🔬 COBRApy (NIH) — Clostridium FBA</span>
+                <span class="status-tag pass">✅ RUN</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">🔬 COBRApy (NIH) — Chlorella FBA</span>
+                <span class="status-tag pass">✅ RUN</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">🌊 DWSIM — Heat Exchanger</span>
+                <span class="status-tag fail">⚠️ 39% &lt; 85%</span>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <p>Symbiotic Factory Digital Twin v1.0 — <a href="https://github.com/xaviercallens/symbioticfactory">github.com/xaviercallens/symbioticfactory</a></p>
+        <p style="margin-top:0.3rem;">Open-source engines: NASA OpenMDAO • DOE IDAES • Caltech Cantera • MIT MEEP • NIH COBRApy • OpenFOAM • Code_Aster</p>
+    </footer>
+
+    <script>
+        // Animate bars on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.bar-fill');
+            bars.forEach(bar => {
+                const w = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => { bar.style.width = w; }, 300);
+            });
+        });
+    </script>
+</body>
+</html>
